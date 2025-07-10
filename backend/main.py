@@ -81,7 +81,7 @@ async def analyze_cve(request: AnalyzeRequest):
         # Call PoCForge CLI from the submodule
         pocforge_dir = os.path.join(os.path.dirname(__file__), "PoCForge")
         result = subprocess.run(
-            ["uv", "run", "main.py", "--json", request.cve_id],
+            ["uv", "run", "main.py", "--cve", request.cve_id, "--json"],
             cwd=pocforge_dir,
             capture_output=True,
             text=True,
