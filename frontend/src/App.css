@@ -57,6 +57,16 @@
   cursor: not-allowed;
 }
 
+.form-group input.error {
+  border-color: #f44336;
+}
+
+.validation-error {
+  color: #f44336;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
 button {
   background-color: #646cff;
   color: white;
