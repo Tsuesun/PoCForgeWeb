@@ -1,10 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import List, Optional
 import subprocess
 import json
 import os
+import re
 
 app = FastAPI(title="PoCForge Web API", version="1.0.0")
 
@@ -18,6 +19,19 @@ app.add_middleware(
 
 class AnalyzeRequest(BaseModel):
     cve_id: str
+    
+    @field_validator('cve_id')
+    @classmethod
+    def validate_cve_format(cls, v):
+        if not v:
+            raise ValueError('CVE ID cannot be empty')
+        
+        # CVE format: CVE-YYYY-NNNN (where YYYY is year and NNNN is at least 4 digits)
+        cve_pattern = r'^CVE-\d{4}-\d{4,}$'
+        if not re.match(cve_pattern, v.upper()):
+            raise ValueError('Invalid CVE format. Expected format: CVE-YYYY-NNNN (e.g., CVE-2024-1234)')
+        
+        return v.upper()
 
 class Commit(BaseModel):
     url: str

@@ -70,17 +70,40 @@ function App() {
   const [cveId, setCveId] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<AnalyzeResponse | null>(null)
+  const [validationError, setValidationError] = useState('')
+
+  const validateCveFormat = (cve: string): boolean => {
+    const cvePattern = /^CVE-\d{4}-\d{4,}$/i
+    return cvePattern.test(cve.trim())
+  }
+
+  const handleCveChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setCveId(value)
+    
+    if (value.trim() && !validateCveFormat(value)) {
+      setValidationError('Invalid CVE format. Expected format: CVE-YYYY-NNNN (e.g., CVE-2024-1234)')
+    } else {
+      setValidationError('')
+    }
+  }
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!cveId.trim()) return
 
+    if (!validateCveFormat(cveId)) {
+      setValidationError('Invalid CVE format. Expected format: CVE-YYYY-NNNN (e.g., CVE-2024-1234)')
+      return
+    }
+
     setLoading(true)
     setResult(null)
+    setValidationError('')
 
     try {
       const response = await axios.post<AnalyzeResponse>('http://localhost:8000/analyze', {
-        cve_id: cveId
+        cve_id: cveId.toUpperCase()
       })
       setResult(response.data)
     } catch (error) {
@@ -108,12 +131,18 @@ function App() {
               id="cve-id"
               type="text"
               value={cveId}
-              onChange={(e) => setCveId(e.target.value)}
+              onChange={handleCveChange}
               placeholder="e.g., CVE-2023-1234"
               disabled={loading}
+              className={validationError ? 'error' : ''}
             />
+            {validationError && (
+              <div className="validation-error">
+                {validationError}
+              </div>
+            )}
           </div>
-          <button type="submit" disabled={loading || !cveId.trim()}>
+          <button type="submit" disabled={loading || !cveId.trim() || !!validationError}>
             {loading ? 'Analyzing...' : 'Analyze CVE'}
           </button>
         </form>
